@@ -1,5 +1,8 @@
 package splar.samples;
 
+import java.util.Map;
+
+import splar.core.constraints.PropositionalFormula;
 import splar.core.fm.FeatureModel;
 import splar.core.fm.XMLFeatureModel;
 import splar.core.heuristics.FTPreOrderSortedECTraversalHeuristic;
@@ -24,7 +27,8 @@ import splar.plugins.reasoners.bdd.javabdd.ReasoningWithBDD;
 public class BDDReasoningExample {
 
 	public static void main(String args[]) {
-		new BDDReasoningExample().run();
+		System.out.println(new BDDReasoningExample().configuracionesPosibles("src/test/resources/models/simple_bike_fm.xml", null));
+		//new BDDReasoningExample().run();
 	}
 	
 	public void run() {
@@ -51,6 +55,7 @@ public class BDDReasoningExample {
 			int 	bddCacheSize 	= 50000;  	// sets the size of the BDD cache table
 			long	maxBuildingTime = 60000L;	// sets the maximum building time
 			
+			
 			// Creates the BDD reasoner
 			ReasoningWithBDD reasoner = new FMReasoningWithBDD(featureModel, heuristic, bddNodeNum, bddCacheSize, maxBuildingTime, "pre-order");
 			
@@ -58,10 +63,10 @@ public class BDDReasoningExample {
 			reasoner.init();
 			
 			// Use the reasoner			
-			System.out.println("BDD has " + reasoner.getBDD().nodeCount() + " nodes and was built in " + reasoner.getBDDBuildingTime() + " ms");
+			//System.out.println("BDD has " + reasoner.getBDD().nodeCount() + " nodes and was built in " + reasoner.getBDDBuildingTime() + " ms");
 			
 			// Check if feature model is consistent, i.e., has at least one valid configuration
-			System.out.println("Feature model is " + (reasoner.isConsistent()? "" : " NOT ") + "consistent!");
+			//System.out.println("Feature model is " + (reasoner.isConsistent()? "" : " NOT ") + "consistent!");
 			
 			// Count feature model solutions			
 			System.out.println("Feature model has " + reasoner.countValidConfigurations() + " possible configurations");
@@ -76,6 +81,75 @@ public class BDDReasoningExample {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		
+		
+	}
+	
+	
+	
+	public String configuracionesPosibles(String path, Map<String, ItemFeature> mapa) {
+
+		try {
+			
+			// Feature model path
+			String featureModelPath = path;
+			
+			FeatureModel featureModel = new XMLFeatureModel(featureModelPath, XMLFeatureModel.USE_VARIABLE_NAME_AS_ID);
+			// load feature model from 			
+			featureModel.loadModel();			
+
+			// create BDD variable order heuristic
+			new FTPreOrderSortedECTraversalHeuristic("Pre-CL-MinSpan", featureModel, FTPreOrderSortedECTraversalHeuristic.FORCE_SORT);		
+			VariableOrderingHeuristic heuristic = VariableOrderingHeuristicsManager.createHeuristicsManager().getHeuristic("Pre-CL-MinSpan");
+
+			int 	bddNodeNum 		= 50000;  	// sets the initial size of the BDD table  
+			int 	bddCacheSize 	= 50000;  	// sets the size of the BDD cache table
+			long	maxBuildingTime = 60000L;	// sets the maximum building time
+			
+			
+			
+			/*for (Map.Entry<String, ItemFeature> entry : mapa.entrySet()) {
+				
+				try{
+					String sitem =entry.getValue().getFeature();
+					if(entry.getValue().getEstado()=="seleccionado"){
+						PropositionalFormula pf= new PropositionalFormula("constraint"+featureModel.getConstraints().size(),entry.getKey() );
+						
+						featureModel.addConstraint(pf);
+					}
+					else if (entry.getValue().getEstado()=="noSeleccionado"){
+						PropositionalFormula pf= new PropositionalFormula("constraint"+featureModel.getConstraints().size(),"~"+entry.getKey() );
+						
+						featureModel.addConstraint(pf);
+					}
+					
+					
+				
+				}
+				catch(Exception e){
+					System.out.println("contradiction");
+				}
+
+			}*/
+			
+			
+			// Creates the BDD reasoner
+			ReasoningWithBDD reasoner = new FMReasoningWithBDD(featureModel, heuristic, bddNodeNum, bddCacheSize, maxBuildingTime, "pre-order");
+						
+			reasoner.init();
+			
+			
+			// Count feature model solutions			
+			//System.out.println("Feature model has " + reasoner.countValidConfigurations() + " possible configurations");
+			return ""+reasoner.countValidConfigurations();
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return null;
 	}
 	
 }
